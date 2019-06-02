@@ -8,8 +8,8 @@ import kotlin.reflect.jvm.javaGetter
 
 object EntityDocsCreator {
 
-	fun getEntityDocs(package: String, names: Set<String>, prevSize: Int = 0, justGetInfo: Boolean = false): Set<EntityInfo> {
-		val ret = File(System.getProperty("user.dir") + "/src/main/java/" + package.replace('.', '/')).listFiles()
+	fun getEntityDocs(packageName: String, names: Set<String>, prevSize: Int = 0, justGetInfo: Boolean = false): Set<EntityInfo> {
+		val ret = File(System.getProperty("user.dir") + "/src/main/java/" + packageName.replace('.', '/')).listFiles()
 			.flatMap { return@flatMap if (it.isFile) listOf(it) else it.listFiles().toList() }
 			.map {
 				var path = it.absolutePath.substringAfter("java").substring(1)
@@ -54,7 +54,7 @@ object EntityDocsCreator {
 		return if (ret.size > prevSize && !justGetInfo) {
 			val newSet = ret.flatMap { it.params.values }.toMutableSet()
 			newSet.addAll(names)
-			test(newSet, newSet.size)
+			getEntityDocs(packageName, newSet, newSet.size)
 		} else {
 			ret
 		}
