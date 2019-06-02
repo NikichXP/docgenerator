@@ -7,9 +7,9 @@ import kotlin.reflect.jvm.javaField
 import kotlin.reflect.jvm.javaGetter
 
 object EntityDocsCreator {
-	
-	fun test(names: Set<String>, prevSize: Int = 0): Set<EntityInfo> {
-		val ret = File(System.getProperty("user.dir") + "/src/main/java/com/clearcash/entity").listFiles()
+
+	fun getEntityDocs(package: String, names: Set<String>, prevSize: Int = 0, justGetInfo: Boolean = false): Set<EntityInfo> {
+		val ret = File(System.getProperty("user.dir") + "/src/main/java/" + package.replace('.', '/')).listFiles()
 			.flatMap { return@flatMap if (it.isFile) listOf(it) else it.listFiles().toList() }
 			.map {
 				var path = it.absolutePath.substringAfter("java").substring(1)
@@ -26,7 +26,7 @@ object EntityDocsCreator {
 			}
 			.map { Class.forName(it).kotlin }
 			.filter {
-				names.any { name -> name.toLowerCase() == it.simpleName?.toLowerCase() }
+				justGetInfo || names.any { name -> name.toLowerCase() == it.simpleName?.toLowerCase() }
 			}
 			.filter {
 				!it.javaObjectType.isEnum
@@ -34,18 +34,24 @@ object EntityDocsCreator {
 			.map {
 				//				it.simpleName?.print()
 				val info = EntityInfo(it.simpleName!!)
-				it.memberProperties
-					.filter {
-						it.javaField?.let {
-							!it.annotations.any { it is JsonIgnore }
-						} ?: true
-					}
-					.forEach { prop ->
-						info.params[prop.name] = prop.javaGetter?.returnType?.simpleName ?: "null"
-					}
+				try {
+					it.memberProperties
+						.filter {
+							it.javaField?.let {
+								!it.annotations.any { it is JsonIgnore }
+							} ?: true
+						}
+						.forEach { prop ->
+							try {
+								info.params[prop.name] = prop.javaGetter?.returnType?.simpleName ?: "null"
+							} catch (e: Exception) {
+							}
+						}
+				} catch (e: Exception) {
+				}
 				return@map info
 			}.toSet()
-		return if (ret.size > prevSize) {
+		return if (ret.size > prevSize && !justGetInfo) {
 			val newSet = ret.flatMap { it.params.values }.toMutableSet()
 			newSet.addAll(names)
 			test(newSet, newSet.size)
@@ -53,12 +59,12 @@ object EntityDocsCreator {
 			ret
 		}
 	}
-	
+
 	class EntityInfo(val name: String) {
 		var params = mutableMapOf<String, String>()
-		
+
 		val paramList: List<Pair<String, String>>
 			get() = params.map { it.key to it.value }
 	}
-	
+
 }
