@@ -1,0 +1,102 @@
+<!DOCTYPE HTML>
+
+<!-- Compiled and minified CSS -->
+<!--suppress ALL -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-rc.2/css/materialize.min.css">
+
+<!-- Compiled and minified JavaScript -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-rc.2/js/materialize.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var elems = document.querySelectorAll('.collapsible');
+        var instances = M.Collapsible.init(elems, {});
+    });
+</script>
+<!--suppress ALL -->
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Docs Generator v0.8</title>
+</head>
+<body>
+
+<div class="container">
+
+    <h3>Docs for <span th:text="${url}"></span></h3>
+    <h6>Currently in development.</h6>
+    <ul class="collapsible" th:each="api: ${apis}">
+        <li>
+            <div class="collapsible-header">
+                <span th:text="${api.name}">Lorem ipsum dolor sit amet.</span>
+            </div>
+            <div class="collapsible-body">
+                <p>
+                    <b>Name: </b><span th:text="${api.name}"></span><br>
+                    <b>Description: </b><span th:text="${api.description}"></span><br>
+                    <b>API Path Parent: </b><span th:text="${api.path}"></span><br>
+                </p>
+
+                <h3>Methods:</h3>
+
+                <div th:if="${api.methods.size() == 0}">
+                    <h5>Work in progress. Check this tab soon.</h5>
+                </div>
+
+                <div th:each="method: ${api.methods}">
+                    <br>
+                    <h5 th:text="${method.name}"></h5>
+                    <p>
+                        <b>Method:</b> <span th:text="${method.method}"></span><br>
+                        <b>Path:</b> <span th:text="${method.path}"></span><br>
+                    </p>
+                    <div th:if="${method.docs.length() > 0}">
+                        <b>Docs:</b>
+                        <div th:each="line: ${method.docs.split('<br>')}">
+                            <span th:text="${line}"></span>
+                        </div>
+                    </div>
+                    <div th:if="${method.returns.length() > 0}">
+                        <b>Returns:</b>
+                        <div th:each="line: ${method.returns.split('<br>')}">
+                            <span th:text="${line}"></span>
+                        </div>
+                    </div>
+                    <div th:if="${method.returnType.length() > 0}">
+                        <b>Return type:</b>
+                        <span th:text="${method.returnType}"></span>
+                    </div>
+                    <p></p>
+
+                    <div th:if="${method.args.size() == 0}">
+                        <h5>No args required.</h5>
+                    </div>
+
+                    <div th:if="${method.args.size() > 0}">
+                        <table class="striped">
+                            <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Type</th>
+                                <th>Class</th>
+                                <th>Required</th>
+                                <th>Docs</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="arg: ${method.args}">
+                                <td th:text="${arg.name}"></td>
+                                <td th:text="${arg.type}"></td>
+                                <td th:text="${arg.clazz}"></td>
+                                <td th:text="${arg.required}"></td>
+                                <td th:text="${arg.docs}"></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <br>
+                </div>
+            </div>
+        </li>
+    </ul>
+</div>
+</body>
+</html>
